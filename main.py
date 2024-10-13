@@ -1,7 +1,6 @@
 import argparse
 import asyncio
 from pathlib import Path
-import os
 
 import discord
 import genshin
@@ -37,10 +36,7 @@ class GenshinDiscordBot(commands.AutoShardedBot):
         await database.Database.init()
 
         # 初始化 genshin api 角色名字
-        try:
-            await genshin.utility.update_characters_enka(["zh-tw"])
-        except Exception as e:
-            LOG.ErrorLog("Error loading Genshin characters", e)
+        await genshin.utility.update_characters_enka(["zh-tw"])
 
         # 從 cogs 資料夾載入所有 cog
         for filepath in Path("./cogs").glob("**/*cog.py"):
@@ -103,4 +99,4 @@ async def on_error(
     sentry_sdk.capture_exception(error)
 
 
-client.run(os.getenv('DISCORD_TOKEN'))
+client.run(config.bot_token)
