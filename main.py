@@ -99,4 +99,4 @@ async def on_error(
     sentry_sdk.capture_exception(error)
 
 
-client.run(config.bot_token)
+bot.run(os.getenv('DISCORD_TOKEN'))
