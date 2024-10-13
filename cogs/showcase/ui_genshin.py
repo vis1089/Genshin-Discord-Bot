@@ -6,7 +6,7 @@ import enkanetwork
 import sentry_sdk
 
 from database import Database, GenshinShowcase, User
-from enka_network import Showcase, enka_assets
+from enka_network import Showcase, enka_assets, generate_image  # Ensure generate_image is available
 from utility import EmbedTemplate, config, emoji, get_app_command_mention
 from utility.custom_log import LOG
 
@@ -53,7 +53,6 @@ class ShowcaseCharactersDropdown(discord.ui.Select):
                 embed=embed, view=ShowcaseView(self.showcase), attachments=[]
             )
         elif index == -2:  # 刪除快取資料
-            # 檢查互動者的 UID 是否符合展示櫃的 UID
             user = await Database.select_one(User, User.discord_id.is_(interaction.user.id))
             if user is None or user.uid_genshin != self.showcase.uid:
                 await interaction.response.send_message(
@@ -104,15 +103,16 @@ class GenerateImageButton(discord.ui.Button):
     ) -> None:
         """產生角色圖片，處理 discord interaction 回覆 embed 給使用者"""
         embed = showcase.get_default_embed(character_index)
+        image_path = await generate_image(showcase, character_index)  # Use generate_image
         _, image = await asyncio.gather(
             interaction.response.edit_message(embed=embed, attachments=[]),
             showcase.get_image(character_index),
         )
-        if image is not None:
+        if image_path:
             embed.set_thumbnail(url=None)
             embed.set_image(url="attachment://image.jpeg")
             await interaction.edit_original_response(
-                embed=embed, attachments=[discord.File(image, "image.jpeg")]
+                embed=embed, attachments=[discord.File(image_path, "image.jpeg")]
             )
 
 
